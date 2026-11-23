@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1f4fd8">
+<title>Notizie</title>
+<style>
+:root{--bg:#f4f6f9;--surface:#fff;--ink:#14181f;--muted:#5b6575;--line:#dde2ea;--accent:#1f4fd8;--accent-ink:#fff;--danger:#c0392b;--sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;--serif:"Source Serif 4",Georgia,"Noto Serif",serif}
+@media(prefers-color-scheme:dark){:root{--bg:#0e1116;--surface:#171b22;--ink:#e8ebf0;--muted:#98a2b3;--line:#2a313c;--accent:#6c8cff;--accent-ink:#0e1116;--danger:#ff7b6b}}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:16px/1.45 var(--sans);padding-bottom:env(safe-area-inset-bottom,0)}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;padding:0}
+button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+header{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:8px;padding:calc(8px + env(safe-area-inset-top,0)) 8px 8px;background:var(--accent);color:var(--accent-ink)}
+header h1{flex:1;margin:0;font:600 1.15rem var(--serif)}
+.ib{width:44px;height:44px;display:grid;place-items:center;border-radius:50%}
+.ib:active{background:rgba(255,255,255,.2)}
+.ib svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+#status{padding:8px 16px;font-size:.8rem;color:var(--muted)}
+#list{padding:0 8px 24px;display:flex;flex-direction:column;gap:8px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px 10px 4px;display:flex;gap:2px}
+.tg{flex:none;width:36px;height:36px;border-radius:8px;font:600 1.4rem/1 var(--sans);color:var(--accent);display:grid;place-items:center}
+.tg:active{background:var(--bg)}
+.tg.sp{visibility:hidden}
+.body{flex:1;min-width:0}
+.body a.t{color:var(--ink);text-decoration:none;font:600 1.05rem/1.3 var(--serif);display:block}
+.meta{margin-top:4px;font-size:.78rem;color:var(--muted)}
+.meta b{color:var(--accent);font-weight:600}
+.more{margin:8px 0 0;padding:0;list-style:none;border-top:1px solid var(--line)}
+.more li{padding:8px 0;border-bottom:1px solid var(--line)}
+.more li:last-child{border-bottom:0;padding-bottom:0}
+.more a{color:var(--ink);text-decoration:none;font:.95rem/1.3 var(--serif)}
+.empty{padding:32px 16px;text-align:center;color:var(--muted)}
+#scrim{position:fixed;inset:0;background:rgba(0,0,0,.45);opacity:0;pointer-events:none;transition:opacity .2s;z-index:10}
+#scrim.on{opacity:1;pointer-events:auto}
+#drawer{position:fixed;top:0;bottom:0;left:0;width:min(84vw,340px);background:var(--surface);z-index:11;transform:translateX(-100%);transition:transform .22s;display:flex;flex-direction:column;padding-top:env(safe-area-inset-top,0)}
+#drawer.on{transform:none}
+#drawer h2{margin:0;padding:16px;font:600 1.1rem var(--serif);border-bottom:1px solid var(--line)}
+#feeds{flex:1;overflow-y:auto;margin:0;padding:0;list-style:none}
+#feeds li{display:flex;align-items:center;gap:2px;padding:4px 4px 4px 16px;border-bottom:1px solid var(--line)}
+#feeds .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#feeds li.off .nm{color:var(--muted);text-decoration:line-through}
+#feeds .err{color:var(--danger);font-size:.72rem;display:block;white-space:normal;line-height:1.3}
+#feeds .ib{width:40px;height:40px;color:var(--muted)}
+#feeds .ib.del{color:var(--danger)}
+#feeds .ib:active{background:var(--bg)}
+.thr{padding:12px 16px;border-top:1px solid var(--line);font-size:.85rem;color:var(--muted)}
+.thr input{width:100%;margin-top:6px}
+#add{margin:12px 16px calc(16px + env(safe-area-inset-bottom,0));padding:12px;border-radius:10px;background:var(--accent);color:var(--accent-ink);font-weight:600}
+#modal{position:fixed;inset:0;z-index:20;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;padding:16px}
+#modal.on{display:flex}
+#modal .box{background:var(--surface);border-radius:12px;padding:20px;width:100%;max-width:400px}
+#modal h3{margin:0 0 12px;font:600 1.1rem var(--serif)}
+#modal label{display:block;font-size:.85rem;color:var(--muted);margin-top:10px}
+#modal input{width:100%;margin-top:4px;padding:10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font:inherit}
+.acts{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}
+.acts button{padding:10px 16px;border-radius:8px}
+.acts .ok{background:var(--accent);color:var(--accent-ink);font-weight:600}
+@media(prefers-reduced-motion:reduce){#drawer,#scrim{transition:none}}
+.lnk{margin:8px 16px 0;padding:8px 0;font-size:.85rem;color:var(--muted);text-align:left;text-decoration:underline}
+</style>
+</head>
+<body>
+<header>
+  <button class="ib" id="menu" aria-label="Apri i feed"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+  <h1>Notizie</h1>
+  <button class="ib" id="refresh" aria-label="Aggiorna"><svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.3-5.6M20 4v5h-5"/></svg></button>
+</header>
+<div id="status"></div>
+<main id="list"></main>
+
+<div id="scrim"></div>
+<aside id="drawer" aria-label="Feed">
+  <h2>I tuoi feed</h2>
+  <ul id="feeds"></ul>
+  <div class="thr"><label>Somiglianza minima per raggruppare: <span id="thrv"></span>%<input type="range" id="thr" min="15" max="70" step="1"></label></div>
+  <button class="lnk" id="tok">Collega GitHub…</button>
+  <button id="add">Add</button>
+</aside>
+
+<div id="modal">
+  <div class="box" role="dialog" aria-label="Nuovo feed">
+    <h3>Nuovo feed</h3>
+    <label>Nome<input id="fn" autocomplete="off"></label>
+    <label>URL del feed RSS<input id="fu" type="url" inputmode="url" placeholder="https://" autocomplete="off"></label>
+    <div class="acts"><button id="fc">Annulla</button><button class="ok" id="fs">Aggiungi</button></div>
+  </div>
+</div>
+
+<script>
+const STOP=new Set('il lo la i gli le un uno una di a da in con su per tra fra e ed o ma che chi cui non si come anche più piu del dello della dei degli delle dal dallo dalla dai dagli dalle nel nello nella nei negli nelle sul sullo sulla sui sugli sulle al allo alla ai agli alle ha ho hanno è sono era essere stato stata sta questo questa questi queste dopo prima ora oggi ieri dove quando mentre cosa tutto tutti nuovo nuova anni anno video foto live'.split(' '));
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function load(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}}
+function save(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+
+let thr=+load('thr',35), paused=new Set(load('paused',[])), feeds=[], updated=0, open=new Set();
+const REPO={owner:location.hostname.split('.')[0],repo:location.pathname.split('/')[1]||''};
+
+async function loadNews(){
+  $('#status').textContent='Caricamento…';
+  try{
+    const r=await fetch('news.json?'+Date.now(),{cache:'no-store'});
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    const d=await r.json();
+    feeds=d.feeds||[]; updated=d.updated?Date.parse(d.updated):0;
+    feeds.forEach(f=>(f.items||[]).forEach(i=>{i.src=f.name;i.feed=f.url}));
+  }catch(e){
+    renderFeeds();
+    $('#status').textContent='Non riesco a leggere news.json ('+e.message+'). Se il sito è appena nato, riprova tra qualche minuto.';
+    return;
+  }
+  render(); renderFeeds();
+}
+
+/* ---- modifica di feeds.json su GitHub (serve il token) ---- */
+async function saveFeeds(mutate){
+  const t=load('ghtoken','');
+  if(!t){alert('Per aggiungere o eliminare feed dall\'app devi prima collegare GitHub (menu, "Collega GitHub"). In alternativa modifica il file feeds.json direttamente su GitHub.');return false}
+  const u='https://api.github.com/repos/'+REPO.owner+'/'+REPO.repo+'/contents/feeds.json';
+  const h={Authorization:'Bearer '+t,Accept:'application/vnd.github+json'};
+  try{
+    const r=await fetch(u,{headers:h,cache:'no-store'});
+    if(!r.ok) throw new Error('lettura HTTP '+r.status);
+    const j=await r.json();
+    const bin=atob(j.content.replace(/\s/g,''));
+    const list=JSON.parse(new TextDecoder().decode(Uint8Array.from(bin,c=>c.charCodeAt(0))));
+    const out=mutate(list);
+    const body={message:'Modifica feed dall\'app',content:btoa(unescape(encodeURIComponent(JSON.stringify(out,null,2)))),sha:j.sha};
+    const w=await fetch(u,{method:'PUT',headers:{...h,'Content-Type':'application/json'},body:JSON.stringify(body)});
+    if(!w.ok) throw new Error('scrittura HTTP '+w.status);
+    return true;
+  }catch(e){alert('Non sono riuscito a salvare: '+e.message);return false}
+}
+
+/* ---- raggruppamento: TF-IDF + similarità del coseno ---- */
+function tokens(s){
+  return s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,' ').split(' ')
+    .filter(w=>w.length>2&&!STOP.has(w));
+}
+function cluster(items){
+  const docs=items.map(i=>{const m=new Map();
+    for(const w of tokens(i.title)) m.set(w,(m.get(w)||0)+2);
+    for(const w of tokens(i.desc)) m.set(w,(m.get(w)||0)+1);
+    return m});
+  const df=new Map(); docs.forEach(m=>m.forEach((_,w)=>df.set(w,(df.get(w)||0)+1)));
+  const N=items.length;
+  const vecs=docs.map(m=>{const v=new Map();let n=0;
+    m.forEach((tf,w)=>{const x=tf*(Math.log((N+1)/(df.get(w)+0.5)));v.set(w,x);n+=x*x});
+    n=Math.sqrt(n)||1; v.forEach((x,w)=>v.set(w,x/n)); return v});
+  const cos=(a,b)=>{if(a.size>b.size)[a,b]=[b,a];let s=0;a.forEach((x,w)=>{const y=b.get(w);if(y)s+=x*y});return s};
+  const order=items.map((_,i)=>i).sort((a,b)=>items[b].ts-items[a].ts);
+  const cl=[];
+  for(const i of order){
+    let best=-1,bs=0;
+    cl.forEach((c,k)=>{
+      if(c.some(j=>items[j].feed===items[i].feed)) return;
+      const s=Math.max(...c.map(j=>cos(vecs[i],vecs[j])));
+      if(s>bs){bs=s;best=k}
+    });
+    if(best>=0&&bs>=thr/100) cl[best].push(i); else cl.push([i]);
+  }
+  return cl.map(c=>c.map(i=>items[i]).sort((a,b)=>b.ts-a.ts))
+           .sort((a,b)=>b[0].ts-a[0].ts);
+}
+
+/* ---- interfaccia ---- */
+function ago(ts){
+  if(!ts) return '';
+  const m=Math.round((Date.now()-ts)/60000);
+  if(m<1) return 'ora'; if(m<60) return m+' min fa';
+  const h=Math.round(m/60); if(h<24) return h+' h fa';
+  return Math.round(h/24)+' g fa';
+}
+function render(){
+  const active=feeds.filter(f=>!paused.has(f.url)).flatMap(f=>f.items||[]);
+  const list=$('#list');
+  if(!active.length){
+    list.innerHTML='<div class="empty">Nessuna notizia da mostrare. Controlla i feed nel menu.</div>';
+  }else{
+    const cl=cluster(active);
+    list.innerHTML=cl.map((c,k)=>{
+      const lead=c[0], id=lead.link, isOpen=open.has(id), multi=c.length>1;
+      const srcs=[...new Set(c.map(i=>i.src))];
+      return '<article class="card"><button class="tg'+(multi?'':' sp')+'" data-k="'+esc(id)+'" aria-expanded="'+isOpen+'" aria-label="'+(isOpen?'Comprimi':'Espandi')+'">'+(isOpen?'−':'+')+'</button>'
+        +'<div class="body"><a class="t" href="'+esc(lead.link)+'" target="_blank" rel="noopener">'+esc(lead.title)+'</a>'
+        +'<div class="meta"><b>'+esc(srcs.join(', '))+'</b>'+(multi?' ('+c.length+' articoli)':'')+' · '+ago(lead.ts)+'</div>'
+        +(multi&&isOpen?'<ul class="more">'+c.map(i=>'<li><a href="'+esc(i.link)+'" target="_blank" rel="noopener">'+esc(i.title)+'</a><div class="meta"><b>'+esc(i.src)+'</b> · '+ago(i.ts)+'</div></li>').join('')+'</ul>':'')
+        +'</div></article>';
+    }).join('');
+  }
+  const bad=feeds.filter(f=>f.error&&!paused.has(f.url)).map(f=>f.name);
+  $('#status').textContent=(updated?'Ultima novità '+ago(updated)+'. ':'')+(bad.length?'Problemi con: '+bad.join(', ')+'.':'');
+}
+const ICON={
+  pause:'<svg viewBox="0 0 24 24"><path d="M9 5v14M15 5v14"/></svg>',
+  play:'<svg viewBox="0 0 24 24"><path d="M7 5l12 7-12 7z"/></svg>',
+  del:'<svg viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>'
+};
+function renderFeeds(){
+  $('#feeds').innerHTML=feeds.map((f,i)=>'<li class="'+(paused.has(f.url)?'off':'')+'"><span class="nm">'+esc(f.name)+(f.error&&!paused.has(f.url)?'<span class="err">'+esc(f.error)+'</span>':'')+'</span>'
+    +'<button class="ib" data-p="'+i+'" aria-label="'+(paused.has(f.url)?'Riattiva ':'Metti in pausa ')+esc(f.name)+'">'+(paused.has(f.url)?ICON.play:ICON.pause)+'</button>'
+    +'<button class="ib del" data-d="'+i+'" aria-label="Elimina '+esc(f.name)+'">'+ICON.del+'</button></li>').join('');
+}
+function drawer(on){$('#drawer').classList.toggle('on',on);$('#scrim').classList.toggle('on',on)}
+
+$('#menu').onclick=()=>drawer(true);
+$('#scrim').onclick=()=>drawer(false);
+$('#refresh').onclick=loadNews;
+$('#list').onclick=e=>{
+  const b=e.target.closest('.tg'); if(!b) return;
+  const k=b.dataset.k; open.has(k)?open.delete(k):open.add(k); render();
+};
+$('#feeds').onclick=async e=>{
+  const p=e.target.closest('[data-p]'), d=e.target.closest('[data-d]');
+  if(p){
+    const f=feeds[+p.dataset.p];
+    paused.has(f.url)?paused.delete(f.url):paused.add(f.url);
+    save('paused',[...paused]); renderFeeds(); render();
+  }else if(d){
+    const f=feeds[+d.dataset.d];
+    if(confirm('Eliminare il feed "'+f.name+'"?')&&await saveFeeds(l=>l.filter(x=>x.url!==f.url))){
+      feeds.splice(+d.dataset.d,1); paused.delete(f.url); save('paused',[...paused]); renderFeeds(); render();
+    }
+  }
+};
+$('#thr').value=thr; $('#thrv').textContent=thr;
+$('#thr').oninput=e=>{thr=+e.target.value;$('#thrv').textContent=thr;save('thr',thr);render()};
+$('#add').onclick=()=>{$('#fn').value='';$('#fu').value='';$('#modal').classList.add('on');$('#fn').focus()};
+$('#fc').onclick=()=>$('#modal').classList.remove('on');
+$('#fs').onclick=async()=>{
+  const name=$('#fn').value.trim(), url=$('#fu').value.trim();
+  if(!name||!/^https?:\/\//i.test(url)){alert('Inserisci un nome e un URL che inizi con http:// o https://');return}
+  if(feeds.some(f=>f.url===url)){alert('Questo feed è già presente.');return}
+  if(await saveFeeds(l=>[...l,{name,url}])){
+    $('#modal').classList.remove('on');
+    feeds.push({name,url,error:'in attesa del primo aggiornamento (1-2 minuti)',items:[]});
+    renderFeeds(); render();
+  }
+};
+$('#tok').onclick=()=>{
+  const t=prompt('Incolla il token GitHub (resta solo su questo telefono). Lascia vuoto per scollegare.','');
+  if(t===null) return;
+  save('ghtoken',t.trim()); alert(t.trim()?'GitHub collegato.':'GitHub scollegato.');
+};
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)loadNews()});
+setInterval(()=>{if(!document.hidden)loadNews()},300000);
+renderFeeds(); loadNews();
+</script>
+</body>
+</html>

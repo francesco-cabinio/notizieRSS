@@ -1,0 +1,6 @@
+[
+  {"name": "Corriere della Sera", "url": "http://xml2.corriereobjects.it/rss/homepage.xml"},
+  {"name": "la Repubblica", "url": "https://www.repubblica.it/rss/homepage/rss2.0.xml"},
+  {"name": "ANSA", "url": "https://www.ansa.it/sito/ansait_rss.xml"},
+  {"name": "RaiNews", "url": "https://www.rainews.it/rss/tutti"}
+]
