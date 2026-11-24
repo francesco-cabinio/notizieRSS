@@ -35,6 +35,40 @@ def parse_date(s):
     return int(d.timestamp() * 1000)
 
 
+IMG_EXT = re.compile(r"\.(jpe?g|png|webp|gif|avif)(\?|#|$)", re.I)
+IMG_TAG = re.compile(r"<img[^>]+src=[\"']([^\"']+)[\"']", re.I)
+
+
+def norm_img(u):
+    u = (u or "").strip()
+    if u.startswith("//"):
+        u = "https:" + u
+    if u.startswith("http://"):
+        u = "https://" + u[7:]
+    return u if u.startswith("https://") else ""
+
+
+def find_image(n, f):
+    """Cerca l'immagine: enclosure / media:content / media:thumbnail, poi <img> nel testo."""
+    for c in n.iter():
+        k = local(c.tag)
+        u = c.get("url") or ""
+        if not u or k not in ("enclosure", "content", "thumbnail"):
+            continue
+        t = (c.get("type") or "") + (c.get("medium") or "")
+        if k == "thumbnail" or "image" in t or (not t and IMG_EXT.search(u)):
+            u = norm_img(u)
+            if u:
+                return u
+    for key in ("description", "encoded", "summary", "content"):
+        m = IMG_TAG.search(f.get(key) or "")
+        if m:
+            u = norm_img(html.unescape(m.group(1)))
+            if u:
+                return u
+    return ""
+
+
 def parse(data):
     root = ET.fromstring(data)
     items = []
@@ -55,7 +89,11 @@ def parse(data):
             continue
         date = f.get("pubDate") or f.get("published") or f.get("updated") or f.get("date")
         desc = clean(f.get("description") or f.get("summary") or f.get("content"))[:220]
-        items.append({"title": title, "desc": desc, "link": link, "ts": parse_date(date)})
+        item = {"title": title, "desc": desc, "link": link, "ts": parse_date(date)}
+        img = find_image(n, f)
+        if img:
+            item["img"] = img
+        items.append(item)
         if len(items) >= MAX_ITEMS:
             break
     if not items:
